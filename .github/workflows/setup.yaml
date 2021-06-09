@@ -1,6 +1,7 @@
 name: Setup repository
 on:
   fork:
+  workflow_dispatch:
 jobs:
   setup:
     name: Initialise OpenSAFELY project fork.
