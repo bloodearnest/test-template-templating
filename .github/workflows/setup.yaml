@@ -1,6 +1,5 @@
 name: Setup repository
 on:
-  fork:
   workflow_dispatch:
   push:
       branches: [main]
@@ -9,6 +8,19 @@ jobs:
     name: Initialise OpenSAFELY project fork.
     runs-on: ubuntu-latest
     steps:
+      - name: Do not run on template repository
+        shell: bash
+        # The only way to trigger this to run when cloned is on push to main.
+        # But that means it would also trigger when we push to the template
+        # repo itself, which we do not want. So, exit early if we are running
+        # on template repo.
+        run: |
+          curl --silent -X GET \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.baptiste-preview+json" \
+            https://api.github.com/repos/$GITHUB_REPOSITORY \
+            | jq --exit-status '.is_template == false';
+
       - uses: actions/checkout@v2
       - name: Update README.md
         shell: bash
@@ -23,5 +35,5 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
           git add .
-          git commit -m 'Setup repository'
+          git commit --amend --no-edit
           git push origin main --force-with-lease
